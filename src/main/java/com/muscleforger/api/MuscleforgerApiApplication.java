@@ -9,7 +9,7 @@ public class MuscleforgerApiApplication {
 	public static void main(String[] args) {
 
 		SpringApplication.run(MuscleforgerApiApplication.class, args);
-		qweqwe
+
 	}
 
 }
