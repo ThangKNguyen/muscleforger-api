@@ -1,5 +1,6 @@
 package com.muscleforger.api.service;
 
+import com.muscleforger.api.entity.User;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class ExerciseService {
 
     private final RestClient restClient;
+    private final CustomExerciseService customExerciseService;
 
     @Value("${rapidapi.key}")
     private String apiKey;
@@ -72,12 +75,23 @@ public class ExerciseService {
     }
 
     public Object searchExercises(String query) {
+        return searchExercises(query, null);
+    }
+
+    public Object searchExercises(String query, User user) {
         List<Map<String, Object>> all = (List<Map<String, Object>>)
                 cache.computeIfAbsent("exercises:search", k -> fetch("/exercises?limit=900"));
         String q = query.toLowerCase();
-        return all.stream()
+        List<Object> results = new ArrayList<>(all.stream()
                 .filter(e -> matches(e, q))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+
+        if (user != null) {
+            List<Object> custom = customExerciseService.search(user, q)
+                    .stream().map(r -> (Object) r).toList();
+            results.addAll(0, custom);
+        }
+        return results;
     }
 
     public Object getByBodyPart(String bodyPart) {
@@ -96,6 +110,14 @@ public class ExerciseService {
     }
 
     public Object getExerciseById(String id) {
+        if (id.startsWith("custom_")) {
+            try {
+                long numericId = Long.parseLong(id.substring(7));
+                return customExerciseService.getById(numericId);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
         return cache.computeIfAbsent("exercise:" + id,
                 k -> fetch("/exercises/exercise/" + id));
     }
