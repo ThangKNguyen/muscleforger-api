@@ -25,3 +25,12 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 900000
   refresh-expiration: 604800000
+
+rapidapi:
+  key: ${RAPIDAPI_KEY}
+  exercisedb:
+    host: exercisedb.p.rapidapi.com
+    base-url: https://exercisedb.p.rapidapi.com
+  youtube:
+    host: youtube-search-and-download.p.rapidapi.com
+    base-url: https://youtube-search-and-download.p.rapidapi.com

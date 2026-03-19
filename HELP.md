@@ -205,12 +205,37 @@ Configure `@CrossOrigin` or a global `CorsConfigurationSource` bean in Spring Se
 
 ## Suggested Backend Implementation Order
 
-1. **DB + JPA setup** — connect to Postgres, verify connection
-2. **Flyway migrations** — create `users`, `favorites`, `workout_exercises`, `recently_viewed` tables
-3. **Auth** — register/login with Spring Security + JWT
-4. **Exercise proxy endpoints** — proxy RapidAPI calls with server-side caching (`ConcurrentHashMap` or Spring Cache + `@Scheduled` refresh)
-5. **User data endpoints** — favorites, workout, history (reads/writes to Postgres)
-6. **Frontend wiring** — update frontend to call backend instead of RapidAPI directly; add TanStack Query for caching + Zustand for auth state
+1. ✅ **DB + JPA setup** — connected to Postgres, verified connection
+2. ✅ **Flyway migrations** — created `users`, `favorites`, `workout_exercises`, `recently_viewed` tables via V1 + V2 migrations
+3. ✅ **Auth** — register/login/refresh/logout/me with Spring Security + JWT (JJWT 0.12.6)
+   - `POST /api/auth/register` — BCrypt password hashing, duplicate email/username check
+   - `POST /api/auth/login` — returns access token (15 min) + refresh token (7 days)
+   - `POST /api/auth/refresh` — issues new token pair from refresh token
+   - `POST /api/auth/logout` — stateless, client discards token
+   - `GET  /api/auth/me` — returns user info from Bearer token
+   - `JwtAuthFilter` validates token on every protected request
+   - CORS configured for `http://localhost:5173`
+   - Secrets moved to `application-local.yaml` (gitignored)
+4. ✅ **Exercise proxy endpoints** — proxy RapidAPI calls with server-side caching
+   - `GET /api/exercises/body-parts` — body part list
+   - `GET /api/exercises?limit=100` — all exercises
+   - `GET /api/exercises/search?q={query}` — server-side filtered search from 900-exercise cache
+   - `GET /api/exercises/body-part/{bodyPart}` — by body part
+   - `GET /api/exercises/target/{target}` — by target muscle
+   - `GET /api/exercises/equipment/{equipment}` — by equipment
+   - `GET /api/exercises/{id}` — single exercise
+   - `GET /api/videos?exercise={name}` — YouTube proxy
+   - `ConcurrentHashMap` cache with `@PostConstruct` warm-up and `@Scheduled` 6-hour refresh
+   - `CompletableFuture.allOf()` for parallel cache population (body parts + exercises + search base)
+   - All endpoints public (no auth required)
+5. ✅ **User data endpoints** — favorites, workout, history (reads/writes to Postgres)
+   - `GET/POST/DELETE /api/user/favorites` — list, add, remove favorites
+   - `GET/POST/DELETE /api/user/workout` — list, add, remove, clear workout
+   - `GET/POST /api/user/history` — list history, log a view (upsert + capped at 20)
+   - All endpoints require Bearer token
+   - GET endpoints return full exercise objects (enriched from cache)
+   - Recently viewed upserts on revisit — bumps to top, no duplicates
+6. 🔄 **Frontend wiring** — auth wiring in progress (LoginPage + useAuth hook added on frontend); still need TanStack Query + full backend switch for exercises/user data
 
 ---
 
