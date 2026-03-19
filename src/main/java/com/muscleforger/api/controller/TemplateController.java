@@ -64,6 +64,14 @@ public class TemplateController {
 
     // ── Exercises ──────────────────────────────────────────────────────────────
 
+    @PostMapping("/{templateId}/days/{dayId}/exercises/reorder")
+    public TemplateDayResponse reorderExercises(Authentication auth,
+                                                 @PathVariable Long templateId,
+                                                 @PathVariable Long dayId,
+                                                 @Valid @RequestBody ReorderExercisesRequest body) {
+        return templateService.reorderExercises(getUser(auth), templateId, dayId, body);
+    }
+
     @PostMapping("/{templateId}/days/{dayId}/exercises")
     @ResponseStatus(HttpStatus.CREATED)
     public TemplateExerciseResponse addExercise(Authentication auth,

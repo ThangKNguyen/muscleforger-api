@@ -9,5 +9,6 @@ import java.math.BigDecimal;
 public record UpdateExerciseConfigRequest(
         @Min(1) Short sets,
         @Min(1) Short reps,
-        @DecimalMin("1.0") @DecimalMax("10.0") BigDecimal rpe
+        @DecimalMin("1.0") @DecimalMax("10.0") BigDecimal rpe,
+        String notes
 ) {}

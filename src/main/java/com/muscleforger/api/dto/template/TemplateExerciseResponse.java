@@ -9,5 +9,6 @@ public record TemplateExerciseResponse(
         Short sets,
         Short reps,
         BigDecimal rpe,
+        String notes,
         Object exerciseDetail
 ) {}

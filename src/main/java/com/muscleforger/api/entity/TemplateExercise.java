@@ -36,4 +36,7 @@ public class TemplateExercise {
 
     @Column(precision = 3, scale = 1)
     private BigDecimal rpe;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

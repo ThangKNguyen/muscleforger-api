@@ -12,5 +12,6 @@ public record AddExerciseToDayRequest(
         @NotBlank String exerciseId,
         @NotNull @Min(1) Short sets,
         @NotNull @Min(1) Short reps,
-        @DecimalMin("1.0") @DecimalMax("10.0") BigDecimal rpe
+        @DecimalMin("1.0") @DecimalMax("10.0") BigDecimal rpe,
+        String notes
 ) {}

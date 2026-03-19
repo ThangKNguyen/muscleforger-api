@@ -58,10 +58,7 @@ public class TemplateService {
                 .map(day -> {
                     List<TemplateExerciseResponse> exercises = exerciseRepository
                             .findByDayOrderByPositionAsc(day).stream()
-                            .map(ex -> new TemplateExerciseResponse(
-                                    ex.getId(), ex.getExerciseId(), ex.getPosition(),
-                                    ex.getSets(), ex.getReps(), ex.getRpe(),
-                                    exerciseService.getExerciseById(ex.getExerciseId())))
+                            .map(this::toExerciseResponse)
                             .toList();
                     return new TemplateDayResponse(day.getId(), day.getDayNumber(), day.getLabel(), exercises);
                 })
@@ -100,10 +97,7 @@ public class TemplateService {
         templateRepository.save(template);
         List<TemplateExerciseResponse> exercises = exerciseRepository
                 .findByDayOrderByPositionAsc(day).stream()
-                .map(ex -> new TemplateExerciseResponse(
-                        ex.getId(), ex.getExerciseId(), ex.getPosition(),
-                        ex.getSets(), ex.getReps(), ex.getRpe(),
-                        exerciseService.getExerciseById(ex.getExerciseId())))
+                .map(this::toExerciseResponse)
                 .toList();
         return new TemplateDayResponse(day.getId(), day.getDayNumber(), day.getLabel(), exercises);
     }
@@ -125,15 +119,13 @@ public class TemplateService {
         ex.setSets(req.sets());
         ex.setReps(req.reps());
         ex.setRpe(req.rpe());
+        ex.setNotes(req.notes());
         ex = exerciseRepository.save(ex);
 
         touchTemplate(template);
         templateRepository.save(template);
 
-        return new TemplateExerciseResponse(
-                ex.getId(), ex.getExerciseId(), ex.getPosition(),
-                ex.getSets(), ex.getReps(), ex.getRpe(),
-                exerciseService.getExerciseById(ex.getExerciseId()));
+        return toExerciseResponse(ex);
     }
 
     @Transactional
@@ -146,15 +138,13 @@ public class TemplateService {
         if (req.sets() != null) ex.setSets(req.sets());
         if (req.reps() != null) ex.setReps(req.reps());
         if (req.rpe() != null) ex.setRpe(req.rpe());
+        if (req.notes() != null) ex.setNotes(req.notes());
         ex = exerciseRepository.save(ex);
 
         touchTemplate(template);
         templateRepository.save(template);
 
-        return new TemplateExerciseResponse(
-                ex.getId(), ex.getExerciseId(), ex.getPosition(),
-                ex.getSets(), ex.getReps(), ex.getRpe(),
-                exerciseService.getExerciseById(ex.getExerciseId()));
+        return toExerciseResponse(ex);
     }
 
     @Transactional
@@ -166,6 +156,39 @@ public class TemplateService {
         exerciseRepository.delete(ex);
         touchTemplate(template);
         templateRepository.save(template);
+    }
+
+    @Transactional
+    public TemplateDayResponse reorderExercises(User user, Long templateId, Long dayId, ReorderExercisesRequest req) {
+        WorkoutTemplate template = findTemplateForUser(user, templateId);
+        TemplateDay day = findDay(template, dayId);
+
+        TemplateExercise ex1 = exerciseRepository.findByIdAndDay(req.exerciseId1(), day)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exercise " + req.exerciseId1() + " not found in this day"));
+        TemplateExercise ex2 = exerciseRepository.findByIdAndDay(req.exerciseId2(), day)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exercise " + req.exerciseId2() + " not found in this day"));
+
+        // Swap positions using temporary -1 to avoid UNIQUE constraint violation
+        Short pos1 = ex1.getPosition();
+        Short pos2 = ex2.getPosition();
+
+        ex1.setPosition((short) -1);
+        exerciseRepository.saveAndFlush(ex1);
+
+        ex2.setPosition(pos1);
+        exerciseRepository.saveAndFlush(ex2);
+
+        ex1.setPosition(pos2);
+        exerciseRepository.saveAndFlush(ex1);
+
+        touchTemplate(template);
+        templateRepository.save(template);
+
+        List<TemplateExerciseResponse> exercises = exerciseRepository
+                .findByDayOrderByPositionAsc(day).stream()
+                .map(this::toExerciseResponse)
+                .toList();
+        return new TemplateDayResponse(day.getId(), day.getDayNumber(), day.getLabel(), exercises);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -182,5 +205,12 @@ public class TemplateService {
 
     private void touchTemplate(WorkoutTemplate template) {
         template.setUpdatedAt(LocalDateTime.now());
+    }
+
+    private TemplateExerciseResponse toExerciseResponse(TemplateExercise ex) {
+        return new TemplateExerciseResponse(
+                ex.getId(), ex.getExerciseId(), ex.getPosition(),
+                ex.getSets(), ex.getReps(), ex.getRpe(), ex.getNotes(),
+                exerciseService.getExerciseById(ex.getExerciseId()));
     }
 }
