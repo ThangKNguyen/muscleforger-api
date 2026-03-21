@@ -4,6 +4,8 @@ REST API backend for [MuscleForger](https://muscleforger.netlify.app) — a fitn
 
 Built with **Spring Boot 4** · **PostgreSQL** · **JWT authentication** · **Flyway migrations**
 
+Frontend Repo: [Repo](https://github.com/ThangKNguyen/React-Fitness-App)
+
 ---
 
 ## Features
