@@ -38,6 +38,9 @@ application-local.yaml
 *.env
 .env
 
+### Uploads (local file storage) ###
+uploads/
+
 ### OS ###
 .DS_Store
 Thumbs.db

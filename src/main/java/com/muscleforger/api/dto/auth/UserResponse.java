@@ -1,3 +1,3 @@
 package com.muscleforger.api.dto.auth;
 
-public record UserResponse(Long id, String email, String username) {}
+public record UserResponse(Long id, String email, String username, String avatarUrl) {}

@@ -8,27 +8,26 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "progress_photos")
 @Getter
 @Setter
 @NoArgsConstructor
-public class User {
+public class ProgressPhoto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Column(nullable = false, unique = true)
-    private String username;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entry_id", nullable = false)
+    private ProgressEntry entry;
 
     @Column(nullable = false)
-    private String password;
+    private String url;
+
+    @Column(nullable = false)
+    private int sortOrder = 0;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    private String avatarUrl;
 }
