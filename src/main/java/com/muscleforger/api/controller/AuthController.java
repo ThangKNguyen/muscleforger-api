@@ -51,6 +51,6 @@ public class AuthController {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-        return new UserResponse(user.getId(), user.getEmail(), user.getUsername(), user.getAvatarUrl());
+        return new UserResponse(user.getId(), user.getEmail(), user.getUsername(), user.getAvatarUrl(), user.getCreatedAt());
     }
 }

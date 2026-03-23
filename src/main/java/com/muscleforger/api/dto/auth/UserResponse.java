@@ -1,3 +1,5 @@
 package com.muscleforger.api.dto.auth;
 
-public record UserResponse(Long id, String email, String username, String avatarUrl) {}
+import java.time.LocalDateTime;
+
+public record UserResponse(Long id, String email, String username, String avatarUrl, LocalDateTime createdAt) {}
