@@ -5,30 +5,31 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "weight_logs", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "date"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class User {
+public class WeightLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Column(nullable = false, precision = 5, scale = 1)
+    private BigDecimal weight;
 
     @Column(nullable = false)
-    private String password;
+    private LocalDate date;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    private String avatarUrl;
 }
