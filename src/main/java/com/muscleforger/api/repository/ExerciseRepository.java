@@ -3,6 +3,7 @@ package com.muscleforger.api.repository;
 import com.muscleforger.api.entity.Exercise;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface ExerciseRepository extends JpaRepository<Exercise, String> {
         LOWER(e.equipment) LIKE LOWER(CONCAT('%', :q, '%')) OR
         LOWER(e.bodyPart) LIKE LOWER(CONCAT('%', :q, '%'))
     """)
-    List<Exercise> search(String q);
+    List<Exercise> search(@Param("q") String q);
 
     @Query("SELECT DISTINCT e.bodyPart FROM Exercise e ORDER BY e.bodyPart")
     List<String> findDistinctBodyParts();
