@@ -52,6 +52,21 @@ public class SupabaseStorageService implements FileStorageService {
     }
 
     @Override
+    public String uploadBytes(String folder, String fileName, byte[] bytes, String contentType) {
+        String path = folder + "/" + fileName;
+        String url = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + supabaseKey);
+        headers.set("apikey", supabaseKey);
+        headers.setContentType(MediaType.parseMediaType(contentType));
+        headers.set("x-upsert", "true");
+
+        restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(bytes, headers), String.class);
+        return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + path;
+    }
+
+    @Override
     public void delete(String fileUrl) {
         if (fileUrl == null) return;
 

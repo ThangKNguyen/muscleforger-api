@@ -51,6 +51,12 @@ supabase:
   storage:
     bucket: uploads
 
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+
+admin:
+  seed-secret: ${SEED_SECRET:local-seed-secret}
+
 rapidapi:
   key: ${RAPIDAPI_KEY}
   exercisedb:

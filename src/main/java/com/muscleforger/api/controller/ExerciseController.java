@@ -4,6 +4,8 @@ import com.muscleforger.api.entity.User;
 import com.muscleforger.api.repository.UserRepository;
 import com.muscleforger.api.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +23,8 @@ public class ExerciseController {
     }
 
     @GetMapping
-    public Object getExercises(@RequestParam(defaultValue = "100") int limit) {
-        return exerciseService.getExercises(limit);
+    public Object getExercises() {
+        return exerciseService.getExercises();
     }
 
     @GetMapping("/search")
@@ -51,5 +53,13 @@ public class ExerciseController {
     @GetMapping("/{id}")
     public Object getById(@PathVariable String id) {
         return exerciseService.getExerciseById(id);
+    }
+
+    @GetMapping("/image")
+    public ResponseEntity<byte[]> getImage(@RequestParam String exerciseId) {
+        byte[] gif = exerciseService.getExerciseGif(exerciseId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_GIF)
+                .body(gif);
     }
 }

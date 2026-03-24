@@ -44,6 +44,18 @@ public class LocalFileStorageService implements FileStorageService {
     }
 
     @Override
+    public String uploadBytes(String folder, String fileName, byte[] bytes, String contentType) {
+        try {
+            Path target = rootDir.resolve(folder);
+            Files.createDirectories(target);
+            Files.write(target.resolve(fileName), bytes);
+            return baseUrl + "/" + folder + "/" + fileName;
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to store bytes", e);
+        }
+    }
+
+    @Override
     public void delete(String fileUrl) {
         if (fileUrl == null || !fileUrl.startsWith(baseUrl)) return;
         String relativePath = fileUrl.substring(baseUrl.length() + 1);

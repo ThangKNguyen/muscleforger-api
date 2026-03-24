@@ -6,13 +6,13 @@ public interface FileStorageService {
 
     /**
      * Upload a file and return its public URL.
-     *
-     * @param folder subfolder path (e.g. "avatars", "progress-photos")
-     * @param fileName the file name to store as
-     * @param file the uploaded file
-     * @return the public URL of the stored file
      */
     String upload(String folder, String fileName, MultipartFile file);
+
+    /**
+     * Upload raw bytes and return the public URL. Used by the seeder.
+     */
+    String uploadBytes(String folder, String fileName, byte[] bytes, String contentType);
 
     /**
      * Delete a file by its URL.
