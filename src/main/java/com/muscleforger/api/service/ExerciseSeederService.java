@@ -153,6 +153,100 @@ public class ExerciseSeederService {
         return value.replace(" ", "%20");
     }
 
+    // ── Specific exercises seed ───────────────────────────────────────────────────
+
+    private static final List<String> SPECIFIC_EXERCISE_NAMES = List.of(
+            "barbell full squat",
+            "barbell bent over row",
+            "dumbbell seated shoulder press",
+            "dumbbell biceps curl",
+            "dumbbell incline bench press",
+            "cable pulldown",
+            "dumbbell lunge",
+            "cable standing rear delt row (with rope)",
+            "lever seated leg curl",
+            "barbell standing leg calf raise",
+            "cable overhead triceps extension (rope attachment)",
+            "cable kneeling crunch",
+            "barbell incline bench press",
+            "chest dip",
+            "cable middle fly",
+            "barbell deadlift"
+    );
+
+    public SeedResult seedSpecific() {
+        int totalSaved = 0;
+        int totalGifs = 0;
+
+        // Seed specific named exercises
+        for (String name : SPECIFIC_EXERCISE_NAMES) {
+            Map<String, Object> raw = fetchByName(name);
+            if (raw == null) {
+                log.warn("Exercise not found by name: '{}'", name);
+                continue;
+            }
+            String id = (String) raw.get("id");
+            if (id == null) continue;
+            if (exerciseRepository.existsById(id)) {
+                log.info("Already in DB, skipping: '{}' ({})", name, id);
+                continue;
+            }
+            String gifUrl = fetchAndStoreGif(id);
+            if (gifUrl != null) totalGifs++;
+            exerciseRepository.save(toEntity(raw, gifUrl));
+            totalSaved++;
+            log.info("Saved: '{}' ({})", name, id);
+        }
+
+        // Seed 10 forearm exercises
+        log.info("Seeding forearms (limit: 10)");
+        int offset = 0;
+        int forearmsSaved = 0;
+        while (forearmsSaved < 10) {
+            List<Map<String, Object>> page = fetchPage("bodyPart", "lower arms", offset);
+            if (page.isEmpty()) break;
+            for (Map<String, Object> raw : page) {
+                if (forearmsSaved >= 10) break;
+                String id = (String) raw.get("id");
+                if (id == null || exerciseRepository.existsById(id)) { forearmsSaved++; continue; }
+                String gifUrl = fetchAndStoreGif(id);
+                if (gifUrl != null) totalGifs++;
+                exerciseRepository.save(toEntity(raw, gifUrl));
+                forearmsSaved++;
+                totalSaved++;
+            }
+            offset += PAGE_SIZE;
+            if (page.size() < PAGE_SIZE) break;
+        }
+        log.info("Forearms saved: {}", forearmsSaved);
+
+        log.info("Specific seed complete. Exercises saved: {}, GIFs stored: {}", totalSaved, totalGifs);
+        return new SeedResult(totalSaved, totalGifs);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> fetchByName(String name) {
+        try {
+            Object response = restClient.get()
+                    .uri(baseUrl + "/exercises/name/" + encode(name))
+                    .header("X-RapidAPI-Key", apiKey)
+                    .header("X-RapidAPI-Host", host)
+                    .retrieve()
+                    .body(Object.class);
+            if (response instanceof List<?> list && !list.isEmpty()) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> exercises = (List<Map<String, Object>>) list;
+                return exercises.stream()
+                        .filter(e -> name.equalsIgnoreCase((String) e.get("name")))
+                        .findFirst()
+                        .orElse(exercises.get(0));
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch exercise by name '{}': {}", name, e.getMessage());
+        }
+        return null;
+    }
+
     public record SeedGroup(String fetchType, String value, int limit) {}
     public record SeedResult(int exercisesSaved, int gifsSaved) {}
 }

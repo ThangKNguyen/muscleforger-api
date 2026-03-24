@@ -30,4 +30,15 @@ public class AdminController {
         CompletableFuture.runAsync(seederService::seed);
         return Map.of("status", "Seed started. Check server logs for progress.");
     }
+
+    @PostMapping("/seed-specific")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Map<String, String> seedSpecific(
+            @RequestHeader("X-Seed-Secret") String secret) {
+        if (!seedSecret.equals(secret)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        CompletableFuture.runAsync(seederService::seedSpecific);
+        return Map.of("status", "Specific seed started. Check server logs for progress.");
+    }
 }
