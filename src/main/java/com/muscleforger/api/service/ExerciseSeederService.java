@@ -93,10 +93,10 @@ public class ExerciseSeederService {
     private List<Map<String, Object>> fetchPage(String fetchType, String value, int offset) {
         try {
             String path = fetchType.equals("target")
-                    ? "/exercises/target/" + encode(value)
-                    : "/exercises/bodyPart/" + encode(value);
+                    ? baseUrl + "/exercises/target/{value}?limit={limit}&offset={offset}"
+                    : baseUrl + "/exercises/bodyPart/{value}?limit={limit}&offset={offset}";
             Object response = restClient.get()
-                    .uri(baseUrl + path + "?limit=" + PAGE_SIZE + "&offset=" + offset)
+                    .uri(path, value, PAGE_SIZE, offset)
                     .header("X-RapidAPI-Key", apiKey)
                     .header("X-RapidAPI-Host", host)
                     .retrieve()
@@ -228,7 +228,7 @@ public class ExerciseSeederService {
     private Map<String, Object> fetchByName(String name) {
         try {
             Object response = restClient.get()
-                    .uri(baseUrl + "/exercises/name/" + encode(name))
+                    .uri(baseUrl + "/exercises/name/{name}", name)
                     .header("X-RapidAPI-Key", apiKey)
                     .header("X-RapidAPI-Host", host)
                     .retrieve()
