@@ -160,7 +160,16 @@ All `/api/user/**` and `/api/user/templates/**` endpoints require a `Authorizati
 
 ## Deployment
 
-The app ships with a `Dockerfile` for containerized deployment (e.g. [Render](https://render.com)).
+The app is deployed on **AWS EC2** (t3.micro) with a static **Elastic IP** for a stable endpoint. The database and file storage remain on **Supabase**.
+
+### Infrastructure
+
+| Component | Service |
+|---|---|
+| Backend | AWS EC2 t3.micro |
+| Static IP | AWS Elastic IP |
+| Database | Supabase (PostgreSQL) |
+| File storage | Supabase Storage |
 
 ### Required environment variables on the host
 
